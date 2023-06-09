@@ -1,0 +1,12 @@
+# Project/Solution Artifacts
+*.sln
+*.vcxproj
+*.vcxproj.user
+*.vcxproj.filters
+
+# CMake Artifacts
+cmake-build-*/
+
+# Build Artifacts
+**/bin
+/out
