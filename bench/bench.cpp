@@ -18,7 +18,7 @@ int main()
 {
     taglog::init();
 
-    int iterations = 250000;
+    int iterations = 25000;
     benchmark_single_threaded(iterations);
 
     taglog::terminate();
