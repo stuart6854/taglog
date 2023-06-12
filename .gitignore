@@ -6,7 +6,9 @@
 
 # CMake Artifacts
 cmake-build-*/
+compile_commands.json
 
 # Build Artifacts
 **/bin
+/build
 /out
