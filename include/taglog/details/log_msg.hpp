@@ -2,6 +2,7 @@
 
 #include <taglog/common.hpp>
 
+#include <thread>
 #include <string>
 #include <stacktrace>
 #include <source_location>
