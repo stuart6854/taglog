@@ -6,6 +6,7 @@
 
 #include "common.hpp"
 
+#include <set>
 #include <ranges>
 #include <format>
 #include <string>
@@ -24,19 +25,21 @@ namespace TAGLOG_NAMESPACE
 
     void terminate() noexcept {}
 
+    auto gather_tags(TagsStringT tagsString) -> std::set<std::string_view>;
     auto format_tags(TagsStringT tagsString) -> std::string;
 
     template <typename... Args>
     void log(FormatStringT<Args...> fmt, Args&&... args) noexcept
     {
-        auto formattedMsg = std::vformat(fmt, std::make_format_args(args...));
+        const auto formattedTags = format_tags("");
+        const auto formattedMsg = std::vformat(fmt, std::make_format_args(args...));
 
 #ifdef _WIN32
 //        OutputDebugStringA(formattedMsg.data());
 //        ::WriteConsoleA()
 #endif
 
-        std::cout << formattedMsg << "\n";
+        std::cout << "[" << formattedTags << "] " << formattedMsg << "\n";
     }
 
     template <typename... Args>
@@ -55,6 +58,7 @@ namespace TAGLOG_NAMESPACE
         Color fgColor{ Color::eNone };
     };
     inline static std::unordered_map<std::size_t, LogTag> s_logTags{};
+    inline static std::set<std::string_view> s_activeTags{};
 
     void define_tag(std::string_view tag, Color fgColor, Color bgColor) noexcept
     {
@@ -62,8 +66,18 @@ namespace TAGLOG_NAMESPACE
         s_logTags[tagHash] = LogTag{ std::string(tag), bgColor, fgColor };
     }
 
-#if 0
+    void begin_tag(std::string_view tag) noexcept
+    {
+        s_activeTags.insert(tag);
+    }
+
+    void end_tag(std::string_view tag) noexcept
+    {
+        s_activeTags.erase(tag);
+    }
+
 // clang-format off
+#if 0
 //#ifdef _WIN32
     // Windows
     #define COLOR_FG_BLACK   0
@@ -106,12 +120,28 @@ namespace TAGLOG_NAMESPACE
     #define COLOR_BOLD_CYAN    "\033[1m\033[36m"      /* Bold Cyan */
     #define COLOR_BOLD_WHITE   "\033[1m\033[37m"      /* Bold White */
 //#endif
-//clang-format on
+    // clang-format on
+
+    auto gather_tags(TagsStringT tagsString) -> std::set<std::string_view>
+    {
+        auto outputTags = s_activeTags;
+        for (const auto tag : std::ranges::views::split(tagsString, ','))
+        {
+            outputTags.insert(std::string_view(tag));
+        }
+        return outputTags;
+    }
 
     auto format_tags(TagsStringT tagsString) -> std::string
     {
+        auto tags = gather_tags(tagsString);
+        if (tags.empty())
+        {
+            return "";
+        }
+
         std::string buffer;
-        for (const auto tag : std::ranges::views::split(tagsString, ','))
+        for (const auto tag : tags)
         {
             auto tagHash = std::hash<std::string_view>{}(std::string_view(tag));
 

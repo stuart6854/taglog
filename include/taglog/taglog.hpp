@@ -61,11 +61,32 @@ namespace TAGLOG_NAMESPACE
 
     void define_tag(std::string_view tag, Color fgColor, Color bgColor) noexcept;
 
+    void begin_tag(std::string_view tag) noexcept;
+    void end_tag(std::string_view tag) noexcept;
+
     template <typename... Args>
     inline void log(FormatStringT<Args...> fmt, Args&&... args) noexcept;
 
     template <typename... Args>
     inline void tagged_log(TagsStringT commaSeparatedTags, FormatStringT<Args...> fmt, Args&&... args) noexcept;
+
+    /**
+     * Scoped-based Tag that begins when the object constructor and ends when the object is destroyed.
+     */
+    struct ScopedTag
+    {
+        ScopedTag(std::string_view tag) : m_tag(tag) { begin_tag(m_tag); }
+        ~ScopedTag() { end_tag(m_tag); }
+
+        ScopedTag(const ScopedTag&) = delete;
+        ScopedTag(ScopedTag&&) noexcept = delete;
+
+        auto operator=(const ScopedTag&) -> ScopedTag& = delete;
+        auto operator=(ScopedTag&&) noexcept -> ScopedTag& = delete;
+
+    private:
+        std::string_view m_tag;
+    };
 
 }
 
